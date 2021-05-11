@@ -1,6 +1,5 @@
 const inquirer = require('inquirer');
 const mysql = require('mysql');
-const { resolveSoa } = require('node:dns');
 require('dotenv').config();
 
 const connection = mysql.createConnection({
@@ -14,20 +13,48 @@ const connection = mysql.createConnection({
   connection.connect((err) => {
     if (err) throw err;
     console.log(`connected as id ${connection.threadId}`);
+    start();
 });
 
-const create = () => {
-
-};
-
-const read = () => {
-    // const query = 'SELECT employee.first_name, employee.last_name, role.title, role.salary FROM '
-};
-
-const update = () => {
-
-};
-
-const del = () => {
-
+const start = () => {
+  inquirer.prompt({
+    name: 'action',
+    type: 'list',
+    message: 'What would you like to do?',
+    choices: [
+      'View all emloyees',
+      'View all roles',
+      'View all departments',
+      'Add employee',
+      'Add role',
+      'Add department',
+      'Exit',
+    ]
+  })
+  .then((answer) => {
+    switch (answer.action) {
+      case 'View all emloyees':
+        viewAllEmployees();
+        break;
+      case 'View all roles':
+        viewAllRoles();
+        break;
+      case 'View all departments':
+        viewAllDepartments();
+        break;
+      case 'Add employee':
+        addEmployee();
+        break;
+      case 'Add role':
+        addRole();
+        break;
+      case 'Add department':
+        addDepartment();
+        break;
+      case 'Exit':
+        connection.end();
+      default:
+          break;
+      }  
+  });
 };
