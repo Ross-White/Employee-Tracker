@@ -58,3 +58,11 @@ const start = () => {
       }  
   });
 };
+
+const viewAllEmployees = () => {
+    connection.query('SELECT first_name, last_name FROM employee', (err, res) => {
+      if (err) throw err;
+      res.forEach(elem => console.log(elem.first_name, elem.last_name));
+      connection.end();
+    });
+};
