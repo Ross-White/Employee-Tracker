@@ -60,9 +60,28 @@ const start = () => {
 };
 
 const viewAllEmployees = () => {
-    connection.query('SELECT first_name, last_name FROM employee', (err, res) => {
-      if (err) throw err;
-      res.forEach(elem => console.log(elem.first_name, elem.last_name));
-      connection.end();
-    });
+  connection.query('SELECT first_name, last_name FROM employee', (err, res) => {
+    if (err) throw err;
+    res.forEach(elem => console.log(elem.first_name, elem.last_name));
+    connection.end();
+  });
+};
+
+const addDepartment = () => {
+  inquirer.prompt({
+    name: 'name',
+    type: 'input',
+    message: 'Please type the name of the department'
+  })
+  .then(answer => {
+    const query = connection.query(
+      'INSERT INTO department SET ?',
+      answer,
+      (err, res) => {
+        if (err) throw err;
+        console.log(`${answer.name} department inserted`);
+        start();
+      }
+    )
+  })
 };
