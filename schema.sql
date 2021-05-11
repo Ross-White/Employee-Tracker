@@ -4,12 +4,12 @@ CREATE database employee_trackerDB;
 USE employee_trackerDB;
 
 CREATE TABLE department (
-    department_id INT PRIMARY KEY,
+    department_id INT AUTO_INCREMENT PRIMARY KEY,
     name VARCHAR(30) NOT NULL,
 );
 
 CREATE TABLE role (
-    role_id INT PRIMARY KEY,
+    role_id INT AUTO_INCREMENT PRIMARY KEY,
     title VARCHAR(30) NOT NULL,
     salary DECIMAL(10, 2),
     department_id INT

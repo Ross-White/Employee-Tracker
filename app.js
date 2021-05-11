@@ -1,5 +1,6 @@
 const inquirer = require('inquirer');
 const mysql = require('mysql');
+const { resolveSoa } = require('node:dns');
 require('dotenv').config();
 
 const connection = mysql.createConnection({
@@ -13,5 +14,20 @@ const connection = mysql.createConnection({
   connection.connect((err) => {
     if (err) throw err;
     console.log(`connected as id ${connection.threadId}`);
-    connection.end();
-  });
+});
+
+const create = () => {
+
+};
+
+const read = () => {
+    // const query = 'SELECT employee.first_name, employee.last_name, role.title, role.salary FROM '
+};
+
+const update = () => {
+
+};
+
+const del = () => {
+
+};
