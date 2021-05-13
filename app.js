@@ -1,6 +1,5 @@
 const inquirer = require('inquirer');
 const mysql = require('mysql');
-// require('console.table');
 require('dotenv').config();
 
 const connection = mysql.createConnection({
@@ -29,6 +28,7 @@ const start = () => {
       'Add employee',
       'Add role',
       'Add department',
+      'Update employee role',
       'Exit',
     ]
   })
@@ -51,6 +51,9 @@ const start = () => {
           break;
         case 'Add department':
           addDepartment();
+          break;
+        case 'Update employee role':
+          updateRole();
           break;
         case 'Exit':
           connection.end();
@@ -90,9 +93,9 @@ const viewByDepartment = () => {
           'SELECT employee.first_name, employee.last_name, role.title, department.name FROM employee LEFT JOIN role on employee.role_id = role.role_id LEFT JOIN department department on role.department_id = department.department_id WHERE department.department_id = ?',
           answer.department_id, (err, res) => {
             if (err) throw err;
-        console.table(res);
-        start();
-        })
+            console.table(res);
+            start();
+          })
       });
 
   })
@@ -121,9 +124,9 @@ const viewByRole = () => {
           'SELECT employee.first_name, employee.last_name, role.title, department.name FROM employee LEFT JOIN role on employee.role_id = role.role_id LEFT JOIN department department on role.department_id = department.department_id WHERE role.role_id = ?',
           answer.role_id, (err, res) => {
             if (err) throw err;
-        console.table(res);
-        start();
-        })
+            console.table(res);
+            start();
+          })
       });
 
   })
@@ -218,8 +221,7 @@ const addEmployee = () => {
       }
     ])
       .then((answer) => {
-        console.log(answer)
-        connection.query(
+       connection.query(
           'INSERT INTO employee SET ?',
           answer,
           (err, res) => {
@@ -232,4 +234,54 @@ const addEmployee = () => {
   })
 };
 
+const updateRole = () => {
+  connection.query(
+    'SELECT employee.first_name, employee.last_name, employee.employee_id, role.title, role.role_id FROM employee LEFT JOIN role on employee.role_id = role.role_id;',
+    (err, results) => {
+      if (err) throw err;
+      inquirer.prompt([
+        {
+          name: 'employee',
+          type: 'list',
+          choices() {
+            let choiceArray = [];
+            results.forEach(({ first_name, last_name, employee_id }) => {
+              choiceArray.push({ name: first_name + ' ' + last_name, value: employee_id });
+            });
+            return choiceArray;
+          },
+          message: 'Please choose an employee to update.'
+        },
+        {
+          name: 'role',
+          type: 'list',
+          choices() {
+            let choiceArray = [];
+            results.forEach(({ title, role_id }) => {
+              choiceArray.push({ name: title, value: role_id });
+            });
+            return choiceArray;
+          },
+          message: 'Choose a new role for the employee.'
+        }
+      ]).then((answer) => {
+        connection.query(
+          'UPDATE employee SET ? WHERE ?;',
+          [
+            {
+              role_id: answer.role,
+            },
+            {
+              employee_id: answer.employee,
+            }
+          ],
+          (err, res) => {
+            if (err) throw err;
+            console.log('Updated employee role.');
+            start();
+          }
+        )
+      });
+    });
+}
 
