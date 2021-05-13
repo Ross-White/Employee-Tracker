@@ -24,9 +24,8 @@ const start = () => {
     message: 'What would you like to do?',
     choices: [
       'View all emloyees',
-      'View all roles',
-      'View employees by departments',
-      'View all departments',
+      'View employees by department',
+      'View employees by role',
       'Add employee',
       'Add role',
       'Add department',
@@ -38,14 +37,11 @@ const start = () => {
         case 'View all emloyees':
           viewAllEmployees();
           break;
-        case 'View all roles':
-          viewAllRoles();
-          break;
-        case 'View all departments':
-          viewAllDepartments();
-          break;
-        case 'View employees by departments':
+        case 'View employees by department':
           viewByDepartment();
+          break;
+        case 'View employees by role':
+          viewByRole();
           break;
         case 'Add employee':
           addEmployee();
@@ -58,19 +54,79 @@ const start = () => {
           break;
         case 'Exit':
           connection.end();
-        default:
-          connection.end();
       }
     });
 };
 
 const viewAllEmployees = () => {
-  connection.query('SELECT first_name, last_name FROM employee',
+  connection.query(
+    'SELECT employee.first_name, employee.last_name, role.title, department.name FROM employee LEFT JOIN role on employee.role_id = role.role_id LEFT JOIN department on role.role_id = department.department_id;',
     (err, res) => {
       if (err) throw err;
-      res.forEach(elem => console.log(elem.first_name, elem.last_name));
+      console.table(res);
       start();
     });
+};
+
+const viewByDepartment = () => {
+  connection.query('SELECT * FROM department', (err, results) => {
+    if (err) throw err;
+    inquirer.prompt([
+      {
+        name: 'department_id',
+        type: 'list',
+        choices() {
+          const choiceArray = [];
+          results.forEach(({ department_id, name }) => {
+            choiceArray.push({ name: name, value: department_id });
+          });
+          return choiceArray;
+        },
+        message: 'Please choose a department for the role.'
+      }
+    ])
+      .then((answer) => {
+        connection.query(
+          'SELECT employee.first_name, employee.last_name, role.title, department.name FROM employee LEFT JOIN role on employee.role_id = role.role_id LEFT JOIN department department on role.department_id = department.department_id WHERE department.department_id = ?',
+          answer.department_id, (err, res) => {
+            if (err) throw err;
+        console.table(res);
+        start();
+        })
+      });
+
+  })
+};
+
+const viewByRole = () => {
+  connection.query('SELECT * FROM role', (err, results) => {
+    if (err) throw err;
+    inquirer.prompt([
+      {
+        name: 'role_id',
+        type: 'list',
+        choices() {
+          const choiceArray = [];
+          results.forEach(({ role_id, title }) => {
+            choiceArray.push({ name: title, value: role_id });
+          });
+          return choiceArray;
+        },
+        message: 'Please choose a role for the employee.'
+      }
+    ])
+      .then((answer) => {
+        console.log(answer.role_id);
+        connection.query(
+          'SELECT employee.first_name, employee.last_name, role.title, department.name FROM employee LEFT JOIN role on employee.role_id = role.role_id LEFT JOIN department department on role.department_id = department.department_id WHERE role.role_id = ?',
+          answer.role_id, (err, res) => {
+            if (err) throw err;
+        console.table(res);
+        start();
+        })
+      });
+
+  })
 };
 
 const addDepartment = () => {
@@ -134,34 +190,4 @@ const addRole = () => {
   })
 };
 
-const viewByDepartment = () => {
-  connection.query('SELECT * FROM department', (err, results) => {
-    if (err) throw err;
-    inquirer.prompt([
-      {
-        name: 'department_id',
-        type: 'list',
-        choices() {
-          const choiceArray = [];
-          results.forEach(({ department_id, name }) => {
-            choiceArray.push({ name: name, value: department_id });
-          });
-          return choiceArray;
-        },
-        message: 'Please choose a department for the role.'
-      }
-    ])
-      .then((answer) => {
-        console.log(answer.department_id);
-        connection.query(
-          'SELECT employee.employee_id, employee.first_name, employee.last_name, role.title FROM employee LEFT JOIN role on employee.role_id = role.role_id LEFT JOIN department department on role.department_id = department.department_id WHERE department.department_id = ?',
-          answer.department_id, (err, res) => {
-            if (err) throw err;
-        // console.log(`${results.title} role inserted`);
-        console.table(res);
-        start();
-        })
-      });
 
-  })
-};
