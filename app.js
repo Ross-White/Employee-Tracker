@@ -33,6 +33,7 @@ const start = () => {
       'Update employee role',
       'Delete employee',
       'Delete role',
+      'Delete department',
       'Department budget',
       'Exit',
     ]
@@ -65,6 +66,9 @@ const start = () => {
           break;
         case 'Delete role':
           deleteRole();
+          break;
+        case 'Delete department':
+          deleteDepartment();
           break;
         case 'Department budget':
           departmentBudget();
@@ -352,12 +356,52 @@ const deleteRole = () => {
           answer,
           (err, res) => {
             if (err) throw err;
-            console.log(`Role deleted!\n Please reassign employees.`);
+            console.log(`Role deleted!\nPlease reassign employees.`);
             start();
           })
       });
   });
 };
+
+const deleteDepartment = () => {
+  inquirer.prompt([
+    {
+      name: 'continue',
+      type: 'list',
+      message: "*** WARNING *** Deleting role will delete all employees associated with the role. Do you want to continue?",
+      choices: ['yes', 'no'],
+    }]).then((answer) => {
+      if (answer.continue === 'no') {
+        start();
+      }
+    }).then(() => {
+      connection.query('SELECT department_name, department_id FROM department;', (err, results) => {
+        if (err) throw err;
+        inquirer.prompt([
+          {
+            name: 'department_id',
+            type: 'list',
+            choices() {
+              const choiceArray = [];
+              results.forEach(({ department_id, department_name }) => {
+                choiceArray.push({ name: department_name, value: department_id });
+              });
+              return choiceArray;
+            },
+            message: 'Please choose a department to delete.',
+          },
+        ]).then((answer) => {
+          connection.query('DELETE FROM department WHERE department_id = ?',
+            answer,
+            (err, res) => {
+              if (err) throw err;
+              console.log(`Department deleted!`);
+              start();
+            })
+        });
+      });
+    });
+}
 
 const departmentBudget = () => {
   connection.query('SELECT * FROM department', (err, results) => {
