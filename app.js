@@ -324,6 +324,7 @@ const deleteEmployee = () => {
           (err, res) => {
             if (err) throw err;
             console.log(`Employee deleted!\n`);
+            start();
           })
       });
   });
@@ -352,37 +353,38 @@ const deleteRole = () => {
           (err, res) => {
             if (err) throw err;
             console.log(`Role deleted!\n Please reassign employees.`);
+            start();
           })
       });
   });
 };
 
-// const departmentBudget = () => {
-//   connection.query('SELECT * FROM department', (err, results) => {
-//     if (err) throw err;
-//     inquirer.prompt([
-//       {
-//         name: 'department_id',
-//         type: 'list',
-//         choices() {
-//           const choiceArray = [];
-//           results.forEach(({ department_id, department_name }) => {
-//             choiceArray.push({ name: department_name, value: department_id });
-//           });
-//           return choiceArray;
-//         },
-//         message: 'Please choose a department for the role.'
-//       }
-//     ])
-//       .then((answer) => {
-//         console.log(answer.department_id);
-//         connection.query('SELECT SUM(role.salary) FROM role LEFT JOIN department on role.department_id = department.department_id WHERE department.department_id = ?',
-//           answer.department_id,
-//           (err, res) => {
-//             if (err) throw err;
-//             console.log(res);
-//             console.log(`Department budget: ${res}`);
-//           });
-//       });
-//   });
-// };
+const departmentBudget = () => {
+  connection.query('SELECT * FROM department', (err, results) => {
+    if (err) throw err;
+    inquirer.prompt([
+      {
+        name: 'department_id',
+        type: 'list',
+        choices() {
+          const choiceArray = [];
+          results.forEach(({ department_id, department_name }) => {
+            choiceArray.push({ name: department_name, value: department_id });
+          });
+          return choiceArray;
+        },
+        message: 'Please choose a department for the role.'
+      }
+    ])
+      .then((answer) => {
+        console.log(answer.department_id);
+        connection.query('SELECT SUM(role.salary) AS Department_Budget FROM role LEFT JOIN department on role.department_id = department.department_id WHERE department.department_id = ?',
+          answer.department_id,
+          (err, res) => {
+            if (err) throw err;
+            console.log(Table.print(res));
+            start();
+          });
+      });
+  });
+};
