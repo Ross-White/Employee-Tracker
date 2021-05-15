@@ -32,6 +32,8 @@ const start = () => {
       'Add department',
       'Update employee role',
       'Delete employee',
+      'Delete role',
+      'Department budget',
       'Exit',
     ]
   })
@@ -60,6 +62,12 @@ const start = () => {
           break;
         case 'Delete employee':
           deleteEmployee();
+          break;
+        case 'Delete role':
+          deleteRole();
+          break;
+        case 'Department budget':
+          departmentBudget();
           break;
         case 'Exit':
           connection.end();
@@ -232,7 +240,7 @@ const addEmployee = () => {
           answer,
           (err, res) => {
             if (err) throw err;
-            console.log(`${answer.first_name} ${answer.last_name}employee inserted`);
+            console.log(`${answer.first_name}  ${answer.last_name}employee inserted`);
             start();
           }
         )
@@ -305,18 +313,76 @@ const deleteEmployee = () => {
           });
           return choiceArray;
         },
-        message: 'Please choose a role for the employee.'
+        message: 'Please choose an employee to delete.'
       }
     ])
       .then((answer) => {
         connection.query('DELETE FROM employee WHERE ?',
-        {
-          employee_id: answer.employee_id,
-        },
-        (err, res) => {
-          if (err) throw err;
-          console.log(`Employee deleted!\n`);
-        })
+          {
+            employee_id: answer.employee_id,
+          },
+          (err, res) => {
+            if (err) throw err;
+            console.log(`Employee deleted!\n`);
+          })
       });
   });
 };
+
+const deleteRole = () => {
+  connection.query('SELECT title, role_id FROM role;', (err, results) => {
+    if (err) throw err;
+    inquirer.prompt([
+      {
+        name: 'role_id',
+        type: 'list',
+        choices() {
+          const choiceArray = [];
+          results.forEach(({ role_id, title }) => {
+            choiceArray.push({ name: title, value: role_id });
+          });
+          return choiceArray;
+        },
+        message: 'Please choose a role to delete.'
+      }
+    ])
+      .then((answer) => {
+        connection.query('DELETE FROM role WHERE role_id = ?',
+          answer,
+          (err, res) => {
+            if (err) throw err;
+            console.log(`Role deleted!\n Please reassign employees.`);
+          })
+      });
+  });
+};
+
+// const departmentBudget = () => {
+//   connection.query('SELECT * FROM department', (err, results) => {
+//     if (err) throw err;
+//     inquirer.prompt([
+//       {
+//         name: 'department_id',
+//         type: 'list',
+//         choices() {
+//           const choiceArray = [];
+//           results.forEach(({ department_id, department_name }) => {
+//             choiceArray.push({ name: department_name, value: department_id });
+//           });
+//           return choiceArray;
+//         },
+//         message: 'Please choose a department for the role.'
+//       }
+//     ])
+//       .then((answer) => {
+//         console.log(answer.department_id);
+//         connection.query('SELECT SUM(role.salary) FROM role LEFT JOIN department on role.department_id = department.department_id WHERE department.department_id = ?',
+//           answer.department_id,
+//           (err, res) => {
+//             if (err) throw err;
+//             console.log(res);
+//             console.log(`Department budget: ${res}`);
+//           });
+//       });
+//   });
+// };
