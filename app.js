@@ -84,9 +84,8 @@ const start = () => {
 };
 
 const viewAllEmployees = () => {
-  connection.query(
-    'SELECT employee.first_name, employee.last_name, role.title, department.department_name FROM employee LEFT JOIN role on employee.role_id = role.role_id LEFT JOIN department on role.role_id = department.department_id;',
-    (err, res) => {
+  const query = 'SELECT employee.first_name, employee.last_name, role.title, role.salary, department.department_name FROM employee LEFT JOIN role on employee.role_id = role.role_id LEFT JOIN department on role.role_id = department.department_id;';
+  connection.query(query, (err, res) => {
       if (err) throw err;
       console.log(Table.print(res));
       start();
