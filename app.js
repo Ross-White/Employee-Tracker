@@ -107,7 +107,7 @@ const viewByDepartment = () => {
           });
           return choiceArray;
         },
-        message: 'Please choose a department for the role.'
+        message: 'Please choose a department to view.'
       }
     ])
       .then((answer) => {
@@ -137,7 +137,7 @@ const viewByRole = () => {
           });
           return choiceArray;
         },
-        message: 'Please choose a role for the employee.'
+        message: 'Please choose a role to view.'
       }
     ])
       .then((answer) => {
@@ -216,7 +216,8 @@ const addRole = () => {
 };
 
 const addEmployee = () => {
-  connection.query('SELECT * FROM role', (err, results) => {
+  const query = 'SELECT employee.first_name, employee.last_name, employee.employee_id, role.title, role.role_id FROM employee LEFT JOIN role ON employee.role_id = role.role_id;'
+  connection.query(query, (err, results) => {
     if (err) throw err;
     inquirer.prompt([
       {
@@ -240,9 +241,22 @@ const addEmployee = () => {
           return choiceArray;
         },
         message: 'Please choose a role for the employee.'
-      }
+      },
+      {
+        name: 'manager_id',
+        type: 'list',
+        choices() {
+          const choiceArray = [];
+          results.forEach(({ first_name, last_name, employee_id }) => {
+            choiceArray.push({ name: first_name + ' ' + last_name, value: employee_id });
+          });
+          return choiceArray;
+        },
+        message: 'Please choose a manager for the employee.'
+      },
     ])
       .then((answer) => {
+        console.log(answer);
         connection.query(
           'INSERT INTO employee SET ?',
           answer,
@@ -250,8 +264,7 @@ const addEmployee = () => {
             if (err) throw err;
             console.log(`${answer.first_name}  ${answer.last_name} employee inserted`);
             start();
-          }
-        )
+          })
       })
   })
 };
