@@ -188,8 +188,8 @@ const addRole = () => {
         type: 'list',
         choices() {
           const choiceArray = [];
-          results.forEach(({ department_id, name }) => {
-            choiceArray.push({ name: name, value: department_id });
+          results.forEach(({ department_id, department_name }) => {
+            choiceArray.push({ name: department_name, value: department_id });
           });
           return choiceArray;
         },
@@ -244,7 +244,7 @@ const addEmployee = () => {
           answer,
           (err, res) => {
             if (err) throw err;
-            console.log(`${answer.first_name}  ${answer.last_name}employee inserted`);
+            console.log(`${answer.first_name}  ${answer.last_name} employee inserted`);
             start();
           }
         )
@@ -349,59 +349,66 @@ const deleteRole = () => {
           return choiceArray;
         },
         message: 'Please choose a role to delete.'
-      }
-    ])
-      .then((answer) => {
+      },
+      {
+        name: 'warning',
+        type: 'list',
+        message: 'Warning, deleting role will remove all employees in the role',
+        choices: ['Delete', 'Cancel']
+      },
+    ]).then((answer) => {
+      if (answer.warning === 'Cancel') {
+        start();
+      } else {
         connection.query('DELETE FROM role WHERE role_id = ?',
-          answer,
+          answer.role_id,
           (err, res) => {
             if (err) throw err;
-            console.log(`Role deleted!\nPlease reassign employees.`);
+            console.log(`Role deleted!`);
             start();
           })
-      });
+      }
+    });
   });
 };
 
 const deleteDepartment = () => {
-  inquirer.prompt([
-    {
-      name: 'continue',
-      type: 'list',
-      message: "*** WARNING *** Deleting role will delete all employees associated with the role. Do you want to continue?",
-      choices: ['yes', 'no'],
-    }]).then((answer) => {
-      if (answer.continue === 'no') {
+  connection.query('SELECT department_name, department_id FROM department;', (err, results) => {
+    if (err) throw err;
+    inquirer.prompt([
+      {
+        name: 'department_id',
+        type: 'list',
+        choices() {
+          const choiceArray = [];
+          results.forEach(({ department_id, department_name }) => {
+            choiceArray.push({ name: department_name, value: department_id });
+          });
+          return choiceArray;
+        },
+        message: 'Please choose a department to delete.',
+      },
+      {
+        name: 'warning',
+        type: 'list',
+        message: 'Warning, deleting department will remove all roles and employees in the department',
+        choices: ['Delete', 'Cancel']
+      },
+    ]).then((answer) => {
+      if (answer.warning === 'Cancel') {
         start();
+      } else {
+        connection.query('DELETE FROM department WHERE department_id = ?',
+          answer.department_id,
+          (err, res) => {
+            if (err) throw err;
+            console.log(`Department deleted!`);
+            start();
+          })
       }
-    }).then(() => {
-      connection.query('SELECT department_name, department_id FROM department;', (err, results) => {
-        if (err) throw err;
-        inquirer.prompt([
-          {
-            name: 'department_id',
-            type: 'list',
-            choices() {
-              const choiceArray = [];
-              results.forEach(({ department_id, department_name }) => {
-                choiceArray.push({ name: department_name, value: department_id });
-              });
-              return choiceArray;
-            },
-            message: 'Please choose a department to delete.',
-          },
-        ]).then((answer) => {
-          connection.query('DELETE FROM department WHERE department_id = ?',
-            answer,
-            (err, res) => {
-              if (err) throw err;
-              console.log(`Department deleted!`);
-              start();
-            })
-        });
-      });
     });
-}
+  });
+};
 
 const departmentBudget = () => {
   connection.query('SELECT * FROM department', (err, results) => {
