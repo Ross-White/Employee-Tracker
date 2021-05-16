@@ -140,7 +140,6 @@ const viewByRole = () => {
       }
     ])
       .then((answer) => {
-        console.log(answer.role_id);
         connection.query(
           'SELECT employee.first_name, employee.last_name, role.title, department.department_name FROM employee LEFT JOIN role on employee.role_id = role.role_id LEFT JOIN department department on role.department_id = department.department_id WHERE role.role_id = ?',
           answer.role_id, (err, res) => {
@@ -200,7 +199,6 @@ const addRole = () => {
       }
     ])
       .then((answer) => {
-        console.log(answer)
         connection.query(
           'INSERT INTO role SET ?',
           answer,
@@ -255,7 +253,6 @@ const addEmployee = () => {
       },
     ])
       .then((answer) => {
-        console.log(answer);
         connection.query(
           'INSERT INTO employee SET ?',
           answer,
@@ -394,7 +391,7 @@ const deleteEmployee = () => {
           },
           (err, res) => {
             if (err) throw err;
-            console.log(`Employee deleted!\n`);
+            console.log(`Employee deleted!`);
             start();
           })
       });
