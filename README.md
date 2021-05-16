@@ -21,7 +21,7 @@ The application is able to:
 
 
 ## Demo
-Site
+![Gif](./Assets/demo.gif)
 
 ## Getting Started
 ### Instructions:
