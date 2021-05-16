@@ -24,13 +24,14 @@ const start = () => {
     type: 'list',
     message: 'What would you like to do?',
     choices: [
-      'View all emloyees',
+      'View all employees',
       'View employees by department',
       'View employees by role',
       'Add employee',
       'Add role',
       'Add department',
       'Update employee role',
+      'Update employee manager',
       'Delete employee',
       'Delete role',
       'Delete department',
@@ -40,7 +41,7 @@ const start = () => {
   })
     .then((answer) => {
       switch (answer.action) {
-        case 'View all emloyees':
+        case 'View all employees':
           viewAllEmployees();
           break;
         case 'View employees by department':
@@ -60,6 +61,9 @@ const start = () => {
           break;
         case 'Update employee role':
           updateRole();
+          break;
+        case 'Update employee manager':
+          updateManager();
           break;
         case 'Delete employee':
           deleteEmployee();
@@ -302,6 +306,57 @@ const updateRole = () => {
       });
     });
 }
+
+const updateManager = () => {
+  connection.query(
+    'SELECT first_name, last_name, employee_id FROM employee;',
+    (err, results) => {
+      if (err) throw err;
+      inquirer.prompt([
+        {
+          name: 'employee',
+          type: 'list',
+          choices() {
+            let choiceArray = [];
+            results.forEach(({ first_name, last_name, employee_id }) => {
+              choiceArray.push({ name: first_name + ' ' + last_name, value: employee_id });
+            });
+            return choiceArray;
+          },
+          message: 'Please choose an employee to update.'
+        },
+        {
+          name: 'manager',
+          type: 'list',
+          choices() {
+            let choiceArray = [];
+            results.forEach(({ first_name, last_name, employee_id }) => {
+              choiceArray.push({ name: first_name + ' ' + last_name, value: employee_id });
+            });
+            return choiceArray;
+          },
+          message: 'Choose a new manager for the employee.'
+        }
+      ]).then((answer) => {
+        connection.query(
+          'UPDATE employee SET ? WHERE ?;',
+          [
+            {
+              manager_id: answer.manager
+            },
+            {
+              employee_id: answer.employee,
+            }
+          ],
+          (err, res) => {
+            if (err) throw err;
+            console.log('Updated employee manager.');
+            start();
+          }
+        )
+      });
+    })
+};
 
 const deleteEmployee = () => {
   connection.query('SELECT first_name, last_name, employee_id FROM employee;', (err, results) => {
