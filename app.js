@@ -154,7 +154,7 @@ const viewByRole = () => {
 
 const addDepartment = () => {
   inquirer.prompt({
-    name: 'name',
+    name: 'department_name',
     type: 'input',
     message: 'Please type the name of the department'
   })
